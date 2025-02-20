@@ -1,55 +1,88 @@
 const express = require("express");
 const http = require("http");
-var livereload = require("livereload");
-var connectLiveReload = require("connect-livereload");
+const livereload = require("livereload");
+const connectLiveReload = require("connect-livereload");
+const path = require("path");
+const bodyParser = require("express").json;
 const { initializeWebsocketServer } = require("./server/websocketserver");
 const { initializeAPI } = require("./server/api");
-const {
-  initializeMariaDB,
-  initializeDBSchema,
-  executeSQL,
-} = require("./server/database");
+const { initializeMariaDB, initializeDBSchema, executeSQL } = require("./server/database");
 
-// Create the express server
 const app = express();
 const server = http.createServer(app);
 
-// create a livereload server
-// ONLY FOR DEVELOPMENT important to remove in production
-// by set the NODE_ENV to production
+// Middleware zum Parsen von JSON-Daten
+app.use(bodyParser());
+
+// Livereload für Entwicklung aktivieren
 const env = process.env.NODE_ENV || "development";
 if (env !== "production") {
   const liveReloadServer = livereload.createServer();
   liveReloadServer.server.once("connection", () => {
-    setTimeout(() => {
-      liveReloadServer.refresh("/");
-    }, 100);
+    setTimeout(() => liveReloadServer.refresh("/"), 100);
   });
-  // use livereload middleware
   app.use(connectLiveReload());
 }
 
-// deliver static files from the client folder like css, js, images
+// Statische Dateien ausliefern
 app.use(express.static("client"));
-// route for the homepage
+
+// Standardroute: Registrierung (index.html)
 app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/client/index.html");
+  res.sendFile(path.join(__dirname, "client", "index.html"));
 });
-// Initialize the websocket server
+
+// Hauptseite nach Registrierung oder Anmeldung (main.html)
+app.get("/main", (req, res) => {
+  res.sendFile(path.join(__dirname, "client", "main.html"));
+});
+
+// Registrierung eines Benutzers
+app.post("/register", async (req, res) => {
+  try {
+    const { benutzername, passwort } = req.body;
+    if (!benutzername || !passwort) {
+      return res.status(400).json({ error: "Benutzername und Passwort erforderlich" });
+    }
+    await executeSQL("INSERT INTO users (benutzername, passwort) VALUES (?, ?);", [benutzername, passwort]);
+    res.json({ success: true, message: "Registrierung erfolgreich", redirect: "/main" });
+  } catch (error) {
+    res.status(500).json({ error: "Fehler bei der Registrierung" });
+  }
+});
+
+app.post("/login", async (req, res) => {
+  try {
+      const { benutzername, passwort } = req.body;
+      console.log("Login-Versuch mit:", benutzername, passwort); // Debugging
+
+      const result = await executeSQL("SELECT * FROM users WHERE benutzername = ? AND passwort = ?;", [benutzername, passwort]);
+
+      if (result.length === 0) {
+          console.log("Benutzer nicht gefunden oder falsches Passwort.");
+          return res.status(400).json({ error: "Falsche Anmeldedaten" });
+      }
+
+      console.log("Login erfolgreich:", result[0]);
+      res.json({ success: true, userId: result[0].id, benutzername: result[0].benutzername, redirect: "/main.html" });
+  } catch (error) {
+      console.error("Fehler beim Login:", error);
+      res.status(500).json({ error: "Es gab ein Problem mit der Anmeldung." });
+  }
+});
+
+
+// WebSocket- und API-Server initialisieren
 initializeWebsocketServer(server);
-// Initialize the REST api
 initializeAPI(app);
 
-// Allowing top-level await
-(async function () {
-  // Initialize the database
+// Datenbank initialisieren und Server starten
+(async () => {
   initializeMariaDB();
   await initializeDBSchema();
-  //start the web server
+
   const serverPort = process.env.PORT || 3000;
   server.listen(serverPort, () => {
-    console.log(
-      `Express Server started on port ${serverPort} as '${env}' Environment`
-    );
+    console.log(`Server läuft auf Port ${serverPort} im '${env}' Modus.`);
   });
 })();

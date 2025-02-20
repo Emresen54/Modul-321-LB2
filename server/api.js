@@ -1,42 +1,48 @@
 const { executeSQL } = require("./database");
 
 /**
- * Initializes the API endpoints.
- * @example
- * initializeAPI(app);
- * @param {Object} app - The express app object.
- * @returns {void}
+ * Initialisiert die API-Endpunkte.
+ * @param {Object} app - Express-App
  */
 const initializeAPI = (app) => {
-  // default REST api endpoint
-  app.get("/api/hello", hello);
-  app.get("/api/users", users);
+  app.post("/api/register", registerUser);
+  app.post("/api/login", loginUser);
 };
 
 /**
- * A simple hello world endpoint.
- * @example
- * hello(req, res);
- * @param {Object} req - The request object.
- * @param {Object} res - The response object.
- * @returns {void}
+ * Benutzer registrieren.
  */
-const hello = (req, res) => {
-  res.send("Hello World!");
+const registerUser = async (req, res) => {
+  try {
+    const { benutzername, passwort } = req.body;
+    if (!benutzername || !passwort) {
+      return res.status(400).json({ error: "Benutzername und Passwort erforderlich" });
+    }
+
+    await executeSQL("INSERT INTO users (benutzername, passwort) VALUES (?, ?);", [benutzername, passwort]);
+    
+    res.json({ success: true, message: "Registrierung erfolgreich" });
+  } catch (error) {
+    res.status(500).json({ error: "Fehler bei der Registrierung" });
+  }
 };
 
 /**
- * A simple users that shows the use of the database for insert and select statements.
- * @example
- * users(req, res);
- * @param {Object} req - The request object.
- * @param {Object} res - The response object.
- * @returns {void}
+ * Benutzer einloggen.
  */
-const users = async (req, res) => {
-  await executeSQL("INSERT INTO users (name) VALUES ('John Doe');");
-  const result = await executeSQL("SELECT * FROM users;");
-  res.json(result);
+const loginUser = async (req, res) => {
+  try {
+    const { benutzername, passwort } = req.body;
+    const result = await executeSQL("SELECT * FROM users WHERE benutzername = ? AND passwort = ?;", [benutzername, passwort]);
+
+    if (result.length === 0) {
+      return res.status(400).json({ error: "Falsche Anmeldedaten" });
+    }
+
+    res.json({ success: true, message: "Login erfolgreich", userId: result[0].id });
+  } catch (error) {
+    res.status(500).json({ error: "Fehler beim Login" });
+  }
 };
 
 module.exports = { initializeAPI };

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BuzzChat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="h-screen flex flex-col bg-gray-100">
+    <!-- Kopfzeile mit Benutzerprofil und Einstellungen -->
+    <header class="bg-white p-4 shadow-md flex justify-between items-center">
+        <h1 class="text-xl font-bold">BuzzChat</h1>
+        <div class="flex items-center space-x-4">
+            <input type="text" id="search-input" placeholder="Benutzer suchen..." class="p-2 border rounded-md">
+            <img id="profile-pic" src="default-avatar.png" class="w-10 h-10 rounded-full cursor-pointer" onclick="openSettings()">
+        </div>
+    </header>
+    
+    <div class="flex flex-1">
+        <!-- Seitenleiste für Benutzerliste -->
+        <aside class="w-1/4 bg-gray-200 p-4">
+            <h2 class="font-bold mb-2">Kontakte</h2>
+            <div id="user-list" class="space-y-2"></div>
+        </aside>
+        
+        <!-- Chatbereich -->
+        <main class="flex-1 p-4 flex flex-col">
+            <div id="chat-header" class="p-2 font-bold border-b">Wähle einen Benutzer</div>
+            <div id="chat-box" class="flex-1 overflow-y-auto p-2 space-y-2"></div>
+            <div class="flex items-center mt-2">
+                <input type="text" id="message-input" placeholder="Nachricht schreiben..." class="flex-1 p-2 border rounded-md">
+                <button id="send-button" class="ml-2 bg-blue-500 text-white p-2 rounded-md">Senden</button>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Einstellungen (Modal) -->
+    <div id="settings-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center">
+        <div class="bg-white p-6 rounded-lg w-96">
+            <h2 class="text-xl font-bold mb-4">Einstellungen</h2>
+            <form id="profile-form" class="space-y-4">
+                <div>
+                    <label class="block font-medium">Neuer Benutzername</label>
+                    <input type="text" id="new-username" class="w-full p-2 border rounded-md">
+                </div>
+                <div>
+                    <label class="block font-medium">Neues Passwort</label>
+                    <input type="password" id="new-password" class="w-full p-2 border rounded-md">
+                </div>
+                <div>
+                    <label class="block font-medium">Profilbild ändern</label>
+                    <input type="file" id="profile-pic-input" class="w-full">
+                </div>
+                <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded-md">Speichern</button>
+            </form>
+            <button onclick="closeSettings()" class="mt-4 w-full text-center text-red-500">Schließen</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

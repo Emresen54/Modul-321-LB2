@@ -5,35 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BuzzChat - Einstellungen</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        function goBack() {
+            console.log("Zurück zur Startseite …");
+            window.location.href = "/main.html";
+        }
+        
+        function logoutUser() {
+            console.log("Benutzer meldet sich ab...");
+            localStorage.clear(); 
+            window.location.href = "/login.html"; 
+        }
+    </script>
 </head>
 <body class="h-screen flex flex-col bg-gray-100">
     <header class="bg-white p-4 shadow-md flex justify-between items-center">
-        <button id="back" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">⬅ Zurück</button>
+        <button onclick="goBack()" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">⬅ Zurück</button>
         <h1 class="text-xl font-bold">BuzzChat</h1>
-        <button id="logout" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">Abmelden</button>
+        <button onclick="logoutUser()" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">Abmelden</button>
     </header>
     
     <div class="flex flex-1 p-6">
-        <!-- Linke Seite für Benutzer-Einstellungen -->
         <div class="w-1/2 bg-white p-6 rounded-lg shadow-md">
             <h2 class="text-2xl font-bold mb-4">Benutzereinstellungen</h2>
-            
-            <!-- Benutzername ändern -->
             <div class="mb-4">
                 <label class="block font-medium">Neuer Benutzername</label>
-                <input type="text" id="new-username" class="w-full p-2 border rounded-md">
-                <button id="change-username" class="mt-2 bg-blue-500 text-white py-2 w-full rounded-md hover:bg-blue-600">Ändern</button>
-            </div>
-            
-            <!-- Passwort ändern -->
-            <div class="mb-4">
-                <label class="block font-medium">Neues Passwort</label>
-                <input type="password" id="new-password" class="w-full p-2 border rounded-md">
-                <button id="change-password" class="mt-2 bg-blue-500 text-white py-2 w-full rounded-md hover:bg-blue-600">Ändern</button>
+                <input type="text" id="new-username" placeholder="Neuer Benutzername" class="p-2 border rounded-md w-full">
+                <button id="change-username-button" class="bg-blue-500 text-white p-2 rounded-md w-full">Ändern</button>
             </div>
         </div>
-        
-        <!-- Rechte Seite für Profilbild -->
         <div class="w-1/2 flex flex-col items-center justify-center bg-white p-6 rounded-lg shadow-md ml-6">
             <h2 class="text-2xl font-bold mb-4">Profilbild ändern</h2>
             <input type="file" id="profile-pic-input" class="mb-4">
@@ -41,7 +41,5 @@
             <button id="change-profile-pic" class="mt-4 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600">Ändern</button>
         </div>
     </div>
-    
-    <script src="script.js"></script>
 </body>
 </html>

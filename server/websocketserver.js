@@ -22,9 +22,37 @@ const initializeWebsocketServer = (server) => {
  * @returns {void}
  */
 const onConnection = (ws) => {
-  console.log("New websocket connection");
+  console.log("Neue WebSocket-Verbindung empfangen.");
+  
   ws.on("message", (message) => onMessage(ws, message));
+
+  // An alle Clients senden, wenn die Benutzerliste aktualisiert wird
+  ws.on("close", () => {
+      console.log("Der Benutzer hat die Verbindung geschlossen.");
+      onDisconnect(ws);
+  });
+
+  sendUserList();
 };
+
+const sendUserList = () => {
+  const usersMessage = {
+      type: "users",
+      users: clients
+          .filter(client => client.user && client.user.benutzername)
+          .map(client => ({
+              benutzername: client.user.benutzername,
+              online: client.user.online || 0
+          }))
+  };
+  
+  clients.forEach(client => {
+      client.ws.send(JSON.stringify(usersMessage));
+  });
+
+  console.log("Liste der über WebSocket gesendeten Benutzer:", usersMessage);
+};
+
 
 // If a new message is received, the onMessage function is called
 /**
@@ -37,32 +65,30 @@ const onConnection = (ws) => {
 const onMessage = (ws, messageBuffer) => {
   const messageString = messageBuffer.toString();
   const message = JSON.parse(messageString);
-  console.log("Received message: " + messageString);
-  // The message type is checked and the appropriate action is taken
+  console.log("Empfangene WebSocket-Nachricht:", message);
+
   switch (message.type) {
-    case "user": {
-      clients.push({ ws, user: message.user });
-      const usersMessage = {
-        type: "users",
-        users: clients.map((client) => client.user),
-      };
-      clients.forEach((client) => {
-        client.ws.send(JSON.stringify(usersMessage));
-      });
-      ws.on("close", () => onDisconnect(ws));
-      break;
-    }
-    case "message": {
-      clients.forEach((client) => {
-        client.ws.send(messageString);
-      });
-      break;
-    }
-    default: {
-      console.log("Unknown message type: " + message.type);
-    }
+      case "user":
+          if (!message.user || !message.user.benutzername) {
+              console.error("Fehler: Benutzername fehlt!");
+              return;
+          }
+
+          clients.push({ ws, user: message.user });
+          sendUserList();
+          break;
+
+      case "message":
+          clients.forEach(client => {
+              client.ws.send(messageString);
+          });
+          break;
+
+      default:
+          console.log("⚠ Unbekannter Nachrichtentyp:", message.type);
   }
 };
+
 
 /**
  * Handles a websocket disconnect. All other clients are notified about the disconnect.

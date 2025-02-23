@@ -58,16 +58,19 @@ const initializeDBSchema = async () => {
     id INT NOT NULL AUTO_INCREMENT,
     benutzername VARCHAR(255) NOT NULL,
     passwort VARCHAR(255) NOT NULL,
+    online BOOLEAN DEFAULT FALSE,
+    profile_picture VARCHAR(255) DEFAULT NULL,
     PRIMARY KEY (id)
   );`;
   await executeSQL(userTableQuery);
   const messageTableQuery = `CREATE TABLE IF NOT EXISTS messages (
-    id INT NOT NULL AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    message VARCHAR(255) NOT NULL,
-    PRIMARY KEY (id),
-    FOREIGN KEY (user_id) REFERENCES users(id)
-  );`;
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    sender VARCHAR(255) NOT NULL,
+    recipient VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`;
+
   await executeSQL(messageTableQuery);
 };
 
